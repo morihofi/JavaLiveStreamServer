@@ -28,7 +28,6 @@ import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.handler.codec.http.DefaultLastHttpContent;
-import io.netty.util.ReferenceCountUtil;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Stream {
 
-	static byte[] flvHeader = new byte[] { 0x46, 0x4C, 0x56, 0x01, 0x05, 00, 00, 00, 0x09 };
+	static byte[] flvHeader = new byte[] { 0x46, 0x4C, 0x56, 0x01, 0x05, 0x00, 0x00, 0x00, 0x09 };
 
 	Map<String, Object> metadata;
 
@@ -56,7 +55,7 @@ public class Stream {
 
 	int obsTimeStamp;
 
-	FileOutputStream flvout;
+	FileOutputStream flvOutStream;
 	boolean flvHeadAndMetadataWritten = false;
 
 	Set<Channel> httpFLvSubscribers;
@@ -79,8 +78,7 @@ public class Stream {
 			handleNonObsStream(msg);
 		}
 		
-		if(msg instanceof VideoMessage) {
-			VideoMessage vm=(VideoMessage)msg;
+		if(msg instanceof VideoMessage vm) {
 			if (vm.isAVCDecoderConfigurationRecord()) {
 				log.info("avcDecoderConfigurationRecord  ok");
 				avcDecoderConfigurationRecord = vm;
@@ -92,8 +90,7 @@ public class Stream {
 			}
 		}
 		
-		if(msg instanceof AudioMessage) {
-			AudioMessage am=(AudioMessage) msg;
+		if(msg instanceof AudioMessage am) {
 			if (am.isAACAudioSpecificConfig()) {
 				aacAudioSpecificConfig = am;
 			}
@@ -108,8 +105,7 @@ public class Stream {
 	}
 
 	private void handleNonObsStream(RtmpMediaMessage msg) {
-		if (msg instanceof VideoMessage) {
-			VideoMessage vm = (VideoMessage) msg;
+		if (msg instanceof VideoMessage vm) {
 			if (vm.getTimestamp() != null) {
 				// we may encode as FMT1 ,so we need timestamp delta
 				vm.setTimestampDelta(vm.getTimestamp() - videoTimestamp);
@@ -122,9 +118,8 @@ public class Stream {
 		
 		}
 
-		if (msg instanceof AudioMessage) {
+		if (msg instanceof AudioMessage am) {
 
-			AudioMessage am = (AudioMessage) msg;
 			if (am.getTimestamp() != null) {
 				am.setTimestampDelta(am.getTimestamp() - audioTimestamp);
 				audioTimestamp = am.getTimestamp();
@@ -132,8 +127,6 @@ public class Stream {
 				audioTimestamp += am.getTimestampDelta();
 				am.setTimestamp(audioTimestamp);
 			}
-
-			
 		}
 	}
 
@@ -184,7 +177,7 @@ public class Stream {
 	}
 
 	private void writeFlv(RtmpMediaMessage msg) {
-		if (flvout == null) {
+		if (flvOutStream == null) {
 			log.error("no flv file existed for stream : {}", streamName);
 			return;
 		}
@@ -194,8 +187,8 @@ public class Stream {
 				flvHeadAndMetadataWritten = true;
 			}
 			byte[] encodeMediaAsFlv = encodeMediaAsFlvTagAndPrevTagSize(msg);
-			flvout.write(encodeMediaAsFlv);
-			flvout.flush();
+			flvOutStream.write(encodeMediaAsFlv);
+			flvOutStream.flush();
 
 		} catch (IOException e) {
 			log.error("writting flv file failed , stream is :{}", streamName, e);
@@ -233,8 +226,8 @@ public class Stream {
 
 	private void writeFlvHeaderAndMetadata() throws IOException {
 		byte[] encodeFlvHeaderAndMetadata = encodeFlvHeaderAndMetadata();
-		flvout.write(encodeFlvHeaderAndMetadata);
-		flvout.flush();
+		flvOutStream.write(encodeFlvHeaderAndMetadata);
+		flvOutStream.flush();
 
 	}
 
@@ -253,12 +246,11 @@ public class Stream {
 		File f = new File(
 				MyLiveConfig.INSTANCE.getSaveFlVFilePath() + "/" + streamName.getApp() + "_" + streamName.getName());
 		try {
-			FileOutputStream fos = new FileOutputStream(f);
 
-			flvout = fos;
+			flvOutStream = new FileOutputStream(f);
 
 		} catch (IOException e) {
-			log.error("create file : {} failed", e);
+			log.error("create file failed", e);
 
 		}
 
@@ -335,12 +327,12 @@ public class Stream {
 	}
 
 	public synchronized void sendEofToAllSubscriberAndClose() {
-		if (MyLiveConfig.INSTANCE.isSaveFlvFile() && flvout != null) {
+		if (MyLiveConfig.INSTANCE.isSaveFlvFile() && flvOutStream != null) {
 			try {
-				flvout.flush();
-				flvout.close();
+				flvOutStream.flush();
+				flvOutStream.close();
 			} catch (IOException e) {
-				log.error("close file:{} failed", flvout);
+				log.error("close file:{} failed", flvOutStream);
 			}
 		}
 		for (Channel sc : subscribers) {

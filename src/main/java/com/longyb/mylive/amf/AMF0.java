@@ -16,14 +16,14 @@ public class AMF0 {
 	private AMF0() {
 	}
 
-	public static enum Type {
+	public enum Type {
 
 		NUMBER(0x00), BOOLEAN(0x01), STRING(0x02), OBJECT(0x03), NULL(0x05), UNDEFINED(0x06), MAP(0x08), ARRAY(0x0A),
 		DATE(0x0B), LONG_STRING(0x0C), UNSUPPORTED(0x0D);
 
 		private final int value;
 
-		private Type(int value) {
+		Type(int value) {
 			this.value = value;
 		}
 
@@ -54,34 +54,20 @@ public class AMF0 {
 		}
 
 		public static Type valueToEnum(int value) {
-			switch (value) {
-			case 0x00:
-				return NUMBER;
-			case 0x01:
-				return BOOLEAN;
-			case 0x02:
-				return STRING;
-			case 0x03:
-				return OBJECT;
-			case 0x05:
-				return NULL;
-			case 0x06:
-				return UNDEFINED;
-			case 0x08:
-				return MAP;
-			case 0x0A:
-				return ARRAY;
-			case 0x0B:
-				return DATE;
-			case 0x0C:
-				return LONG_STRING;
-			case 0x0D:
-				return UNSUPPORTED;
-
-			default:
-				throw new RuntimeException("unexpected type: " + value);
-
-			}
+			return switch (value) {
+				case 0x00 -> NUMBER;
+				case 0x01 -> BOOLEAN;
+				case 0x02 -> STRING;
+				case 0x03 -> OBJECT;
+				case 0x05 -> NULL;
+				case 0x06 -> UNDEFINED;
+				case 0x08 -> MAP;
+				case 0x0A -> ARRAY;
+				case 0x0B -> DATE;
+				case 0x0C -> LONG_STRING;
+				case 0x0D -> UNSUPPORTED;
+				default -> throw new RuntimeException("unexpected type: " + value);
+			};
 		}
 
 	}
@@ -101,7 +87,7 @@ public class AMF0 {
 			if (value instanceof Double) {
 				out.writeLong(Double.doubleToLongBits((Double) value));
 			} else { // this coverts int also
-				out.writeLong(Double.doubleToLongBits(Double.valueOf(value.toString())));
+				out.writeLong(Double.doubleToLongBits(Double.parseDouble(value.toString())));
 			}
 			return;
 		case BOOLEAN:
@@ -181,64 +167,68 @@ public class AMF0 {
 
 	private static Object decode(final ByteBuf in, final Type type) {
 		switch (type) {
-		case NUMBER:
-			return Double.longBitsToDouble(in.readLong());
-		case BOOLEAN:
-			return in.readByte() == BOOLEAN_TRUE;
-		case STRING:
-			return decodeString(in);
-		case ARRAY:
-			final int arraySize = in.readInt();
-			final Object[] array = new Object[arraySize];
-			for (int i = 0; i < arraySize; i++) {
-				array[i] = decode(in);
+			case NUMBER -> {
+				return Double.longBitsToDouble(in.readLong());
 			}
-			return array;
-		case MAP:
-		case OBJECT:
-			final int count;
-			final Map<String, Object> map;
-			if (type == Type.MAP) {
-				count = in.readInt(); // should always be 0
-				map = new LinkedHashMap<String, Object>();
-				if (count > 0) {
-					log.debug("non-zero size for MAP type: {}", count);
-				}
-			} else {
-				count = 0;
-				map = new Amf0Object();
+			case BOOLEAN -> {
+				return in.readByte() == BOOLEAN_TRUE;
 			}
-			int i = 0;
-			final byte[] endMarker = new byte[3];
-			while (in.isReadable()) {
-				in.getBytes(in.readerIndex(), endMarker);
-				if (Arrays.equals(endMarker, OBJECT_END_MARKER)) {
-					in.skipBytes(3);
-					log.debug("end MAP / OBJECT, found object end marker [000009]");
-					break;
-				}
-				if (count > 0 && i++ == count) {
-					log.debug("stopping map decode after reaching count: {}", count);
-					break;
-				}
-				map.put(decodeString(in), decode(in));
+			case STRING -> {
+				return decodeString(in);
 			}
-			return map;
-		case DATE:
-			final long dateValue = in.readLong();
-			in.readShort(); // consume the timezone
-			return new Date((long) Double.longBitsToDouble(dateValue));
-		case LONG_STRING:
-			final int stringSize = in.readInt();
-			final byte[] bytes = new byte[stringSize];
-			in.readBytes(bytes);
-			return new String(bytes); // UTF-8 ?
-		case NULL:
-		case UNDEFINED:
-		case UNSUPPORTED:
-			return null;
-		default:
-			throw new RuntimeException("unexpected type: " + type);
+			case ARRAY -> {
+				final int arraySize = in.readInt();
+				final Object[] array = new Object[arraySize];
+				for (int i = 0; i < arraySize; i++) {
+					array[i] = decode(in);
+				}
+				return array;
+			}
+			case MAP, OBJECT -> {
+				final int count;
+				final Map<String, Object> map;
+				if (type == Type.MAP) {
+					count = in.readInt(); // should always be 0
+					map = new LinkedHashMap<>();
+					if (count > 0) {
+						log.debug("non-zero size for MAP type: {}", count);
+					}
+				} else {
+					count = 0;
+					map = new Amf0Object();
+				}
+				int i = 0;
+				final byte[] endMarker = new byte[3];
+				while (in.isReadable()) {
+					in.getBytes(in.readerIndex(), endMarker);
+					if (Arrays.equals(endMarker, OBJECT_END_MARKER)) {
+						in.skipBytes(3);
+						log.debug("end MAP / OBJECT, found object end marker [000009]");
+						break;
+					}
+					if (count > 0 && i++ == count) {
+						log.debug("stopping map decode after reaching count: {}", count);
+						break;
+					}
+					map.put(decodeString(in), decode(in));
+				}
+				return map;
+			}
+			case DATE -> {
+				final long dateValue = in.readLong();
+				in.readShort(); // consume the timezone
+				return new Date((long) Double.longBitsToDouble(dateValue));
+			}
+			case LONG_STRING -> {
+				final int stringSize = in.readInt();
+				final byte[] bytes = new byte[stringSize];
+				in.readBytes(bytes);
+				return new String(bytes); // UTF-8 ?
+			}
+			case NULL, UNDEFINED, UNSUPPORTED -> {
+				return null;
+			}
+			default -> throw new RuntimeException("unexpected type: " + type);
 		}
 	}
 

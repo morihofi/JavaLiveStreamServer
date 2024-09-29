@@ -44,14 +44,14 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 
 	private StreamName streamName;
 
-	private StreamManager streamManager;
+	private final StreamManager streamManager;
 
 	public RtmpMessageHandler(StreamManager manager) {
 		this.streamManager = manager;
 	}
 
 	@Override
-	public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+	public void channelInactive(ChannelHandlerContext ctx) {
 		if (!normalShutdown && role == Role.Publisher) {
 			Stream stream = streamManager.getStream(streamName);
 			if (stream != null) {
@@ -63,15 +63,14 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 	}
 
 	@Override
-	protected void channelRead0(ChannelHandlerContext ctx, RtmpMessage msg) throws Exception {
+	protected void channelRead0(ChannelHandlerContext ctx, RtmpMessage msg) {
 
 		maySendAck(ctx, msg);
 		if (!(msg instanceof VideoMessage || msg instanceof AudioMessage)) {
 			log.info("RTMP_Message_Read : {}", msg);
 		}
 		if (msg instanceof WindowAcknowledgementSize) {
-			int ackSize = ((WindowAcknowledgementSize) msg).getWindowSize();
-			this.ackWindowSize = ackSize;
+			this.ackWindowSize = ((WindowAcknowledgementSize) msg).getWindowSize();
 			return;
 		}
 
@@ -127,24 +126,13 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 		List<Object> command = msg.getCommand();
 		String commandName = (String) command.get(0);
 		switch (commandName) {
-		case "connect":
-			handleConnect(ctx, msg);
-			break;
-		case "createStream":
-			handleCreateStream(ctx, msg);
-			break;
-		case "publish":
-			handlePublish(ctx, msg);
-			break;
-		case "play":
-			handlePlay(ctx, msg);
-			break;
-		case "deleteStream":
-		case "closeStream":
-			handleCloseStream(ctx, msg);
-			break;
-		default:
-			break;
+			case "connect" -> handleConnect(ctx, msg);
+			case "createStream" -> handleCreateStream(ctx, msg);
+			case "publish" -> handlePublish(ctx, msg);
+			case "play" -> handlePlay(ctx, msg);
+			case "deleteStream", "closeStream" -> handleCloseStream(ctx, msg);
+			default -> {
+			}
 		}
 
 	}
@@ -257,7 +245,7 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 
 		log.info("create stream received : {}", msg);
 
-		List<Object> result = new ArrayList<Object>();
+		List<Object> result = new ArrayList<>();
 		result.add("_result");
 		result.add(msg.getCommand().get(1));// transaction id
 		result.add(null);// properties
@@ -276,9 +264,9 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 
 		log.info("client connect {} ", msg);
 
-		String app = (String) ((Map) msg.getCommand().get(2)).get("app");
-		Integer clientRequestEncode = (Integer) ((Map) msg.getCommand().get(2)).get("objectEncoding");
-		if(clientRequestEncode !=null && clientRequestEncode.intValue()==3) {
+		String app = (String) ((Map<?, ?>) msg.getCommand().get(2)).get("app");
+		Integer clientRequestEncode = (Integer) ((Map<?, ?>) msg.getCommand().get(2)).get("objectEncoding");
+		if(clientRequestEncode !=null && clientRequestEncode ==3) {
 			log.error("client :{} request AMF3 encoding but server currently doesn't support",ctx);
 			ctx.close();
 			return ;
@@ -297,7 +285,7 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 		ctx.writeAndFlush(spb);
 		ctx.writeAndFlush(setChunkSize);
 
-		List<Object> result = new ArrayList<Object>();
+		List<Object> result = new ArrayList<>();
 		result.add("_result");
 		result.add(msg.getCommand().get(1));// transaction id
 		result.add(new Amf0Object().addProperty("fmsVer", "FMS/3,0,1,123").addProperty("capabilities", 31));
@@ -345,8 +333,7 @@ public class RtmpMessageHandler extends SimpleChannelInboundHandler<RtmpMessage>
 		result.add(new Amf0Object().addProperty("level", level).addProperty("code", code).addProperty("description",
 				description));// stream id
 
-		RtmpCommandMessage response = new RtmpCommandMessage(result);
-		return response;
+		return new RtmpCommandMessage(result);
 	}
 
 }

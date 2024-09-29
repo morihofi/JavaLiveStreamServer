@@ -10,8 +10,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -39,29 +41,18 @@ public class UserControlMessageEvent extends RtmpMessage {
 	}
 
 	public static UserControlMessageEvent streamBegin(int streamId) {
-		UserControlMessageEvent e = new UserControlMessageEvent((short) 0,streamId );
-		return e;
+		return new UserControlMessageEvent((short) 0,streamId );
 	}
-
 	public static UserControlMessageEvent streamEOF(int streamId) {
-		UserControlMessageEvent e = new UserControlMessageEvent((short) 1,streamId);
-		return e;
+		return new UserControlMessageEvent((short) 1,streamId);
 	}
-
 	public static UserControlMessageEvent streamDry(int streamId) {
-		UserControlMessageEvent e = new UserControlMessageEvent((short) 2,streamId);
-		return e;
+		return new UserControlMessageEvent((short) 2,streamId);
 	}
-	
 	public static UserControlMessageEvent setBufferLength(int bufferLengthInms) {
-		UserControlMessageEvent e = new UserControlMessageEvent((short) 3,bufferLengthInms);
-		return e;
+		return new UserControlMessageEvent((short) 3,bufferLengthInms);
 	}
-	
 	public boolean isBufferLength() {
 		return eventType==3;
 	}
-
- 
-
 }

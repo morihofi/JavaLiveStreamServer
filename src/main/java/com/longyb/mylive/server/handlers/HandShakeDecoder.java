@@ -37,27 +37,26 @@ public class HandShakeDecoder extends ByteToMessageDecoder {
 			return;
 		}
 
-		ByteBuf buf = in;
 		if (!c0c1done) {
 			// read c0 and c1
-			if (buf.readableBytes() < VERSION_LENGTH + HANDSHAKE_LENGTH) {
+			if (in.readableBytes() < VERSION_LENGTH + HANDSHAKE_LENGTH) {
 				return;
 			}
 
-			buf.readByte();
+			in.readByte();
 
-			buf.readBytes(CLIENT_HANDSHAKE);
+			in.readBytes(CLIENT_HANDSHAKE);
 
 			writeS0S1S2(ctx);
 			c0c1done = true;
 
 		} else {
 			// read c2
-			if (buf.readableBytes() < HANDSHAKE_LENGTH) {
+			if (in.readableBytes() < HANDSHAKE_LENGTH) {
 				return;
 			}
 
-			buf.readBytes(CLIENT_HANDSHAKE);
+			in.readBytes(CLIENT_HANDSHAKE);
 
 			// handshake done
 			CLIENT_HANDSHAKE = null;

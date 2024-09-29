@@ -39,8 +39,7 @@ public class HttpFlvHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 	@Override
 	protected void channelRead0(ChannelHandlerContext ctx, HttpObject msg) throws Exception {
-		if (msg instanceof HttpRequest) {
-			HttpRequest req = (HttpRequest) msg;
+		if (msg instanceof HttpRequest req) {
 
 			String uri = req.uri();
 			List<String> appAndStreamName = Splitter.on("/").omitEmptyStrings().splitToList(uri);
@@ -77,10 +76,13 @@ public class HttpFlvHandler extends SimpleChannelInboundHandler<HttpObject> {
 
 		}
 
-		if (msg instanceof HttpContent) {
+		/*
+			We ignore it for now
 
-		}
+			if (msg instanceof HttpContent) {
 
+			}
+		*/
 	}
 
 	private void httpResponseStreamNotExist(ChannelHandlerContext ctx, String uri) {

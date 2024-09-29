@@ -10,15 +10,12 @@ import com.longyb.mylive.server.rtmp.Constants;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.*;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString(callSuper = true)
 public class AudioMessage extends RtmpMediaMessage {
 	byte[] audioData;
 

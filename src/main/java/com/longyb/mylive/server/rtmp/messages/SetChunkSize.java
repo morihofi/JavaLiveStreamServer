@@ -6,14 +6,15 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /**
  * @author longyubo 2019年12月16日 下午3:40:03
  **/
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-
 @NoArgsConstructor
 public class SetChunkSize extends RtmpControlMessage {
 
@@ -22,7 +23,6 @@ public class SetChunkSize extends RtmpControlMessage {
 	@Override
 	public ByteBuf encodePayload() {
 		return Unpooled.buffer(4).writeInt(chunkSize);
-
 	}
 
 	@Override

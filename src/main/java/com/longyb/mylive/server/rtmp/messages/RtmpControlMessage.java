@@ -6,7 +6,6 @@ package com.longyb.mylive.server.rtmp.messages;
  * @author longyubo 2019年12月16日 下午2:38:56
  **/
 public abstract class RtmpControlMessage extends RtmpMessage {
-
 	@Override
 	public int getOutboundCsid() {
 		return 2;

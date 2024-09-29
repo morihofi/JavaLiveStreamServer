@@ -22,8 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class HttpFlvServer {
 
-	private int port;
-
+	private final int port;
 	ChannelFuture channelFuture;
 
 	EventLoopGroup eventLoopGroup;

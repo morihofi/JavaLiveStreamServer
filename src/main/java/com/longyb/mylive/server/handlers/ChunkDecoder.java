@@ -36,7 +36,7 @@ public class ChunkDecoder extends ReplayingDecoder<DecodeState> {
 	int ackWindowSize = -1;
 
 	@Override
-	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+	protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) {
 
 		DecodeState state = state();
 
@@ -91,9 +91,8 @@ public class ChunkDecoder extends ReplayingDecoder<DecodeState> {
 				return;
 			}
 
-			if (msg instanceof SetChunkSize) {
+			if (msg instanceof SetChunkSize scs) {
 				// we need chunksize to decode the chunk
-				SetChunkSize scs = (SetChunkSize) msg;
 				clientChunkSize = scs.getChunkSize();
 				log.debug("------------>client set chunkSize to :{}", clientChunkSize);
 			} else {
@@ -143,64 +142,56 @@ public class ChunkDecoder extends ReplayingDecoder<DecodeState> {
 
 		// MESSAGE HEADER
 		switch (fmt) {
-		case CHUNK_FMT_0: {
-			int timestamp = in.readMedium();
-			int messageLength = in.readMedium();
-			short messageTypeId = (short) (in.readByte() & 0xff);
-			int messageStreamId = in.readIntLE();
-			headerLength += 11;
-			if (timestamp == MAX_TIMESTAMP) {
-				long extendedTimestamp = in.readInt();
-				rtmpHeader.setExtendedTimestamp(extendedTimestamp);
-				headerLength += 4;
+			case CHUNK_FMT_0 -> {
+				int timestamp = in.readMedium();
+				int messageLength = in.readMedium();
+				short messageTypeId = (short) (in.readByte() & 0xff);
+				int messageStreamId = in.readIntLE();
+				headerLength += 11;
+				if (timestamp == MAX_TIMESTAMP) {
+					long extendedTimestamp = in.readInt();
+					rtmpHeader.setExtendedTimestamp(extendedTimestamp);
+					headerLength += 4;
+				}
+
+				rtmpHeader.setTimestamp(timestamp);
+				rtmpHeader.setMessageTypeId(messageTypeId);
+				rtmpHeader.setMessageStreamId(messageStreamId);
+				rtmpHeader.setMessageLength(messageLength);
+
 			}
+			case CHUNK_FMT_1 -> {
+				int timestampDelta = in.readMedium();
+				int messageLength = in.readMedium();
+				short messageType = (short) (in.readByte() & 0xff);
 
-			rtmpHeader.setTimestamp(timestamp);
-			rtmpHeader.setMessageTypeId(messageTypeId);
-			rtmpHeader.setMessageStreamId(messageStreamId);
-			rtmpHeader.setMessageLength(messageLength);
+				headerLength += 7;
+				if (timestampDelta == MAX_TIMESTAMP) {
+					long extendedTimestamp = in.readInt();
+					rtmpHeader.setExtendedTimestamp(extendedTimestamp);
+					headerLength += 4;
+				}
 
-		}
-			break;
-		case CHUNK_FMT_1: {
-			int timestampDelta = in.readMedium();
-			int messageLength = in.readMedium();
-			short messageType = (short) (in.readByte() & 0xff);
-
-			headerLength += 7;
-			if (timestampDelta == MAX_TIMESTAMP) {
-				long extendedTimestamp = in.readInt();
-				rtmpHeader.setExtendedTimestamp(extendedTimestamp);
-				headerLength += 4;
+				rtmpHeader.setTimestampDelta(timestampDelta);
+				rtmpHeader.setMessageLength(messageLength);
+				rtmpHeader.setMessageTypeId(messageType);
 			}
+			case CHUNK_FMT_2 -> {
+				int timestampDelta = in.readMedium();
+				headerLength += 3;
+				rtmpHeader.setTimestampDelta(timestampDelta);
 
-			rtmpHeader.setTimestampDelta(timestampDelta);
-			rtmpHeader.setMessageLength(messageLength);
-			rtmpHeader.setMessageTypeId(messageType);
-		}
-			break;
-		case CHUNK_FMT_2: {
-			int timestampDelta = in.readMedium();
-			headerLength += 3;
-			rtmpHeader.setTimestampDelta(timestampDelta);
+				if (timestampDelta == MAX_TIMESTAMP) {
+					long extendedTimestamp = in.readInt();
+					rtmpHeader.setExtendedTimestamp(extendedTimestamp);
+					headerLength += 4;
+				}
 
-			if (timestampDelta == MAX_TIMESTAMP) {
-				long extendedTimestamp = in.readInt();
-				rtmpHeader.setExtendedTimestamp(extendedTimestamp);
-				headerLength += 4;
 			}
-
-		}
-			break;
-
-		case CHUNK_FMT_3: {
-			// nothing
-		}
-			break;
-
-		default:
-			throw new RuntimeException("illegal fmt type:" + fmt);
-
+			case CHUNK_FMT_3 -> {
+				// nothing
+			}
+			default -> throw new RuntimeException("illegal fmt type:" + fmt);
 		}
 
 		rtmpHeader.setHeaderLength(headerLength);
@@ -214,24 +205,23 @@ public class ChunkDecoder extends ReplayingDecoder<DecodeState> {
 			return;
 		}
 		switch (rtmpHeader.getFmt()) {
-		case CHUNK_FMT_1:
-			rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
+			case CHUNK_FMT_1 -> rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
+
 //			rtmpHeader.setTimestamp(prev.getTimestamp());
-			break;
-		case CHUNK_FMT_2:
+			case CHUNK_FMT_2 -> {
 //			rtmpHeader.setTimestamp(prev.getTimestamp());
-			rtmpHeader.setMessageLength(prev.getMessageLength());
-			rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
-			rtmpHeader.setMessageTypeId(prev.getMessageTypeId());
-			break;
-		case CHUNK_FMT_3:
-			rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
-			rtmpHeader.setMessageTypeId(prev.getMessageTypeId());
-			rtmpHeader.setTimestamp(prev.getTimestamp());
-			rtmpHeader.setTimestampDelta(prev.getTimestampDelta());
-			break;
-		default:
-			break;
+				rtmpHeader.setMessageLength(prev.getMessageLength());
+				rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
+				rtmpHeader.setMessageTypeId(prev.getMessageTypeId());
+			}
+			case CHUNK_FMT_3 -> {
+				rtmpHeader.setMessageStreamId(prev.getMessageStreamId());
+				rtmpHeader.setMessageTypeId(prev.getMessageTypeId());
+				rtmpHeader.setTimestamp(prev.getTimestamp());
+				rtmpHeader.setTimestampDelta(prev.getTimestampDelta());
+			}
+			default -> {
+			}
 		}
 
 	}

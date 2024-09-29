@@ -26,7 +26,7 @@ public class ChunkEncoder extends MessageToByteEncoder<RtmpMessage> {
 	boolean firstAudio = true;
 
 	@Override
-	protected void encode(ChannelHandlerContext ctx, RtmpMessage msg, ByteBuf out) throws Exception {
+	protected void encode(ChannelHandlerContext ctx, RtmpMessage msg, ByteBuf out) {
 
 		if (msg instanceof SetChunkSize) {
 			chunkSize = ((SetChunkSize) msg).getChunkSize();
