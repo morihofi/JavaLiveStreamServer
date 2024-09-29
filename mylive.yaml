@@ -1,6 +1,9 @@
 rtmpPort: 1935
 enableHttpFlv: true
 httpFlvPort: 8080
+ffmpeg:
+  transcodeMultipleQualities: false
+  executablePath: C:\Path\to\ffmpeg.exe
 
 # true stands for saving rtmp stream user pushed as a flv file . false do nothing
 saveFlvFile: false

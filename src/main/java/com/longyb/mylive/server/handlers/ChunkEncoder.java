@@ -104,7 +104,7 @@ public class ChunkEncoder extends MessageToByteEncoder<RtmpMessage> {
 
 		byte[] basicHeader = encodeFmtAndCsid(0, csid);
 
-		// as for control msg ,we always use 0 timestamp
+		// as for control msg, we always use 0 timestamp
 
 		ByteBuf payload = msg.encodePayload();
 		int messageLength = payload.readableBytes();

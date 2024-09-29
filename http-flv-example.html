@@ -1,53 +1,38 @@
 <html>
-
 <head>
     <title>FlvTest</title>
 
 </head>
-
-<script src="https://cdn.bootcdn.net/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
-
 <body>
     <h1>HTTP FLV TEST</h1>
     <video id="videoElement" height="720px" width="1280px"></video>
-    <button onclick="goLoad()">Click Load First</button>
-    <button onclick="goPlay()">Then Click Play</button>
+    <button onclick="goLoad()">Load and Play</button>
 
+	<script src="https://cdn.bootcdn.net/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
+	<script>
+		var flvPlayer;
+		function goLoad() {
+			console.log("load click!");
+			console.log("mse live support:" + flvjs.getFeatureList().mseLiveFlvPlayback);
+			if (flvjs.isSupported()) {
+				var videoElement = document.getElementById('videoElement');
+				console.log("videoElement:" + videoElement);
+				flvPlayer = flvjs.createPlayer({
+					type: 'flv',
+					isLive: true,
+					url: "http://127.0.0.1:8080/live/stream",
+					duration: 0,
+					filesize: 0,
+					enableStashBuffer: false,
+					hasAudio: true,
+					hasVideo: true
+				});
+				flvPlayer.attachMediaElement(videoElement);
+				flvPlayer.load();
+				flvPlayer.play();
 
+			}
+		}
+	</script>
 </body>
-
-
-<script>
-    var flvPlayer;
-    function goLoad() {
-        console.log("load click!");
-        console.log("mse live support:" + flvjs.getFeatureList().mseLiveFlvPlayback);
-        if (flvjs.isSupported()) {
-            var videoElement = document.getElementById('videoElement');
-            console.log("videoElement:" + videoElement);
-            flvPlayer = flvjs.createPlayer({
-                type: 'flv',
-                isLive: true,
-                url: "http://127.0.0.1:8080/live/efprime",
-                duration: 0,
-                filesize: 0,
-                enableStashBuffer: false,
-                hasAudio: true,
-                hasVideo: true
-            });
-            flvPlayer.attachMediaElement(videoElement);
-            flvPlayer.load();
-
-
-        }
-    }
-
-
-    function goPlay() {
-        console.log("play button press")
-        flvPlayer.play();
-    }
-
-</script>
-
 </html>

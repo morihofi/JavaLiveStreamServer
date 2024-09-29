@@ -41,7 +41,7 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.longyb.mylive.server.MyLiveServer</mainClass>
+							<mainClass>com.longyb.mylive.server.ServerApplication</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>

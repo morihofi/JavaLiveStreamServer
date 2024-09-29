@@ -6,9 +6,9 @@ import lombok.Data;
  * @author longyubo 2020年1月9日 下午2:29:25
  **/
 @Data
-public class MyLiveConfig {
+public class ApplicationServerConfig {
 
-	public static MyLiveConfig INSTANCE = null;
+	public static ApplicationServerConfig INSTANCE = null;
 
 	int rtmpPort;
 	int httpFlvPort;
@@ -16,6 +16,6 @@ public class MyLiveConfig {
 	String saveFlVFilePath;
 	int handlerThreadPoolSize;
 	boolean enableHttpFlv;
-	
+	FfmpegConfig ffmpeg;
 	
 }

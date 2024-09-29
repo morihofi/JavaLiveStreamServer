@@ -1,15 +1,14 @@
 package com.longyb.mylive.server.handlers;
 
-import static org.junit.Assert.assertEquals;
 
-import org.junit.Test;
-
-import com.longyb.mylive.server.handlers.ConnectionAdapter;
 import com.longyb.mylive.server.rtmp.Tools;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.embedded.EmbeddedChannel;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * @author longyubo 2019年12月10日 下午8:38:45

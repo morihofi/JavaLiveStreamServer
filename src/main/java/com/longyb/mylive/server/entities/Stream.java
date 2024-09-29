@@ -15,7 +15,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.longyb.mylive.amf.AMF0;
-import com.longyb.mylive.server.cfg.MyLiveConfig;
+import com.longyb.mylive.server.cfg.ApplicationServerConfig;
 import com.longyb.mylive.server.rtmp.Constants;
 import com.longyb.mylive.server.rtmp.messages.AudioMessage;
 import com.longyb.mylive.server.rtmp.messages.RtmpMediaMessage;
@@ -65,7 +65,7 @@ public class Stream {
 		httpFLvSubscribers = new LinkedHashSet<>();
 		content = new ArrayList<>();
 		this.streamName = streamName;
-		if (MyLiveConfig.INSTANCE.isSaveFlvFile()) {
+		if (ApplicationServerConfig.INSTANCE.isSaveFlvFile()) {
 			createFileStream();
 		}
 	}
@@ -98,7 +98,7 @@ public class Stream {
 		
 
 		content.add(msg);
-		if (MyLiveConfig.INSTANCE.isSaveFlvFile()) {
+		if (ApplicationServerConfig.INSTANCE.isSaveFlvFile()) {
 			writeFlv(msg);
 		}
 		broadCastToSubscribers(msg);
@@ -107,7 +107,7 @@ public class Stream {
 	private void handleNonObsStream(RtmpMediaMessage msg) {
 		if (msg instanceof VideoMessage vm) {
 			if (vm.getTimestamp() != null) {
-				// we may encode as FMT1 ,so we need timestamp delta
+				// we may encode as FMT1, so we need timestamp delta
 				vm.setTimestampDelta(vm.getTimestamp() - videoTimestamp);
 				videoTimestamp = vm.getTimestamp();
 			} else if (vm.getTimestampDelta() != null) {
@@ -132,10 +132,10 @@ public class Stream {
 
 	private void handleObsStream(RtmpMediaMessage msg) {
 		// OBS rtmp stream is different from FFMPEG
-		// it's timestamp_delta is delta of last packet,not same type of last packet
+		// it's timestamp_delta is delta of last packet, not same type of last packet
 
 		// flv only require an absolute timestamp
-		// but rtmp client like vlc require a timestamp-delta,which is relative to last
+		// but rtmp client like vlc require a timestamp-delta, which is relative to last
 		// same media packet.
 		if(msg.getTimestamp()!=null) {
 			obsTimeStamp=msg.getTimestamp();
@@ -168,7 +168,7 @@ public class Stream {
 		buffer.writeByte(timestampExtended);// timestampExtended
 		buffer.writeMedium(0);// streamid
 		buffer.writeBytes(data);
-		buffer.writeInt(data.length + 11); // prevousTagSize
+		buffer.writeInt(data.length + 11); // previousTagSize
 
 		byte[] r = new byte[buffer.readableBytes()];
 		buffer.readBytes(r);
@@ -244,7 +244,7 @@ public class Stream {
 
 	private void createFileStream() {
 		File f = new File(
-				MyLiveConfig.INSTANCE.getSaveFlVFilePath() + "/" + streamName.getApp() + "_" + streamName.getName());
+				ApplicationServerConfig.INSTANCE.getSaveFlVFilePath() + "/" + streamName.getApp() + "_" + streamName.getName());
 		try {
 
 			flvOutStream = new FileOutputStream(f);
@@ -317,7 +317,7 @@ public class Stream {
 				if (next.isActive()) {
 					next.writeAndFlush(wrappedBuffer);
 				} else {
-					log.info("http channel :{} is not active remove", next);
+					log.info("HTTP Channel: {} is not active anymore, removing it", next);
 					httpIte.remove();
 				}
 
@@ -327,7 +327,7 @@ public class Stream {
 	}
 
 	public synchronized void sendEofToAllSubscriberAndClose() {
-		if (MyLiveConfig.INSTANCE.isSaveFlvFile() && flvOutStream != null) {
+		if (ApplicationServerConfig.INSTANCE.isSaveFlvFile() && flvOutStream != null) {
 			try {
 				flvOutStream.flush();
 				flvOutStream.close();
