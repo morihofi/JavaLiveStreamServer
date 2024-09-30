@@ -32,8 +32,8 @@ public class HttpRouterHandler extends SimpleChannelInboundHandler<HttpObject> {
         this.streamManager = streamManager;
 
         // Define routes with {} placeholders and corresponding handlers
-        httpHandlers.put("/api/stream/flv/{app}/{stream}", new GetFlvStreamHandler(streamManager));
-        httpHandlers.put("/api/stream/flv/{app}/{stream}.flv", new GetFlvStreamHandler(streamManager));
+        httpHandlers.put("/stream/flv/{app}/{stream}", new GetFlvStreamHandler(streamManager));
+        httpHandlers.put("/stream/flv/{app}/{stream}.flv", new GetFlvStreamHandler(streamManager));
         httpHandlers.put("/api/streams", new GetStreamsHandler(streamManager));
 
         // Compile patterns for routes
@@ -82,6 +82,7 @@ public class HttpRouterHandler extends SimpleChannelInboundHandler<HttpObject> {
 
     // Utility method to create a 404 Not Found response
     private void handle404(ChannelHandlerContext ctx, String uri) {
+        log.error("API: Requested URL [{}] was not found", uri);
         String notFoundMessage = "404 Not Found: The requested URL [" + uri + "] was not found on this server.";
         ByteBuf content = Unpooled.copiedBuffer(notFoundMessage, StandardCharsets.UTF_8);
         FullHttpResponse response = new DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND, content);

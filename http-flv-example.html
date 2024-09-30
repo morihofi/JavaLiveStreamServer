@@ -8,7 +8,7 @@
     <video id="videoElement" height="720px" width="1280px"></video>
     <button onclick="goLoad()">Load and Play</button>
 
-	<script src="https://cdn.bootcdn.net/ajax/libs/flv.js/1.5.0/flv.min.js"></script>
+	<script src="https://bilibili.github.io/flv.js/dist/flv.js"></script>
 	<script>
 		var flvPlayer;
 		function goLoad() {
@@ -20,7 +20,7 @@
 				flvPlayer = flvjs.createPlayer({
 					type: 'flv',
 					isLive: true,
-					url: "http://127.0.0.1:8080/live/stream",
+					url: "http://127.0.0.1:8080/stream/flv/live/stream.flv",
 					duration: 0,
 					filesize: 0,
 					enableStashBuffer: false,
