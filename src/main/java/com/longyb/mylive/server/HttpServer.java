@@ -1,6 +1,6 @@
 package com.longyb.mylive.server;
 
-import com.longyb.mylive.server.handlers.HttpFlvHandler;
+import com.longyb.mylive.server.handlers.HttpRouterHandler;
 import com.longyb.mylive.server.manager.StreamManager;
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 2020年1月7日 下午2:55:47
 **/
 @Slf4j
-public class HttpFlvServer {
+public class HttpServer implements AutoCloseable{
 
 	private final int port;
 	ChannelFuture channelFuture;
@@ -29,35 +29,43 @@ public class HttpFlvServer {
 	StreamManager streamManager;
 	//not used currently
 	int handlerThreadPoolSize;
-	
 
-	public HttpFlvServer(int port, StreamManager sm, int threadPoolSize) {
+
+	public HttpServer(int port, StreamManager sm, int threadPoolSize) {
 		this.port = port;
 		this.streamManager = sm;
 		this.handlerThreadPoolSize = threadPoolSize;
 	}
-	
-	
+
+
 	public void run() throws Exception {
 		eventLoopGroup = new NioEventLoopGroup();
 
 		ServerBootstrap b = new ServerBootstrap();
- 
+
 		b.group(eventLoopGroup).channel(NioServerSocketChannel.class)
 				.childHandler(new ChannelInitializer<SocketChannel>() {
 					@Override
 					public void initChannel(SocketChannel ch) throws Exception {
 						ch.pipeline().addLast(new HttpRequestDecoder());
-					 
+
 						ch.pipeline().addLast(new HttpResponseEncoder());
-					 
-						ch.pipeline().addLast(new HttpFlvHandler(streamManager));
+
+						ch.pipeline().addLast(new HttpRouterHandler(streamManager));
 					}
 				}).option(ChannelOption.SO_BACKLOG, 128).childOption(ChannelOption.SO_KEEPALIVE, true);
 
 		channelFuture = b.bind(port).sync();
-		log.info("HttpFlv server start , listen at :{}",port);
+		log.info("HTTP server started, listening at :{}",port);
 
 	}
-}
 
+	@Override
+	public void close() {
+		try{
+			channelFuture.channel().close();
+		}catch (Exception ex){
+			log.error("Error closing HTTP Server", ex);
+		}
+	}
+}

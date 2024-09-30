@@ -1,8 +1,4 @@
 package com.longyb.mylive.server.entities;
-/**
-@author longyubo
-2020年1月2日 下午3:36:21
-**/
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -35,30 +31,30 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Stream {
 
-	static byte[] flvHeader = new byte[] { 0x46, 0x4C, 0x56, 0x01, 0x05, 0x00, 0x00, 0x00, 0x09 };
+	public static final byte[] FLV_HEADER = new byte[] { 0x46, 0x4C, 0x56, 0x01, 0x05, 0x00, 0x00, 0x00, 0x09 };
 
-	Map<String, Object> metadata;
+	private Map<String, Object> metadata;
 
-	Channel publisher;
+	private Channel publisher;
 
-	VideoMessage avcDecoderConfigurationRecord;
+	private VideoMessage avcDecoderConfigurationRecord;
 
-	AudioMessage aacAudioSpecificConfig;
-	Set<Channel> subscribers;
+	private AudioMessage aacAudioSpecificConfig;
+	private Set<Channel> subscribers;
 
-	List<RtmpMediaMessage> content;
+	private List<RtmpMediaMessage> content;
 
-	StreamName streamName;
+	private StreamName streamName;
 
-	int videoTimestamp;
-	int audioTimestamp;
+	private int videoTimestamp;
+	private int audioTimestamp;
 
-	int obsTimeStamp;
+	private int obsTimeStamp;
 
-	FileOutputStream flvOutStream;
-	boolean flvHeadAndMetadataWritten = false;
+	private FileOutputStream flvOutStream;
+	private boolean flvHeadAndMetadataWritten = false;
 
-	Set<Channel> httpFLvSubscribers;
+	private Set<Channel> httpFLvSubscribers;
 
 	public Stream(StreamName streamName) {
 		subscribers = new LinkedHashSet<>();
@@ -77,25 +73,25 @@ public class Stream {
 		} else {
 			handleNonObsStream(msg);
 		}
-		
+
 		if(msg instanceof VideoMessage vm) {
 			if (vm.isAVCDecoderConfigurationRecord()) {
 				log.info("avcDecoderConfigurationRecord  ok");
 				avcDecoderConfigurationRecord = vm;
 			}
-	
+
 			if (vm.isH264KeyFrame()) {
 				log.debug("video key frame in stream :{}", streamName);
 				content.clear();
 			}
 		}
-		
+
 		if(msg instanceof AudioMessage am) {
 			if (am.isAACAudioSpecificConfig()) {
 				aacAudioSpecificConfig = am;
 			}
 		}
-		
+
 
 		content.add(msg);
 		if (ApplicationServerConfig.INSTANCE.isSaveFlvFile()) {
@@ -115,7 +111,7 @@ public class Stream {
 				vm.setTimestamp(videoTimestamp);
 			}
 
-		
+
 		}
 
 		if (msg instanceof AudioMessage am) {
@@ -203,7 +199,7 @@ public class Stream {
 		int timestamp = msg.getTimestamp() & 0xffffff;
 		int timestampExtended = ((msg.getTimestamp() & 0xff000000) >> 24);
 
-		buf.writeBytes(flvHeader);
+		buf.writeBytes(FLV_HEADER);
 		buf.writeInt(0); // previousTagSize0
 
 		int readableBytes = encodeMetaData.readableBytes();

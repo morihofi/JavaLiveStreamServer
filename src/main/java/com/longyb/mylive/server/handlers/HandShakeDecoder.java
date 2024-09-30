@@ -20,8 +20,8 @@ public class HandShakeDecoder extends ByteToMessageDecoder {
 
 	boolean c2done;
 
-	static int HANDSHAKE_LENGTH = 1536;
-	static int VERSION_LENGTH = 1;
+	static final int HANDSHAKE_LENGTH = 1536;
+	static final int VERSION_LENGTH = 1;
 
 	// server rtmp version
 	static byte S0 = 3;

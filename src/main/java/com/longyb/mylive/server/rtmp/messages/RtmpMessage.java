@@ -1,7 +1,5 @@
 package com.longyb.mylive.server.rtmp.messages;
 
-import com.longyb.mylive.server.handlers.RtmpHeader;
-
 import io.netty.buffer.ByteBuf;
 import lombok.Data;
 
@@ -15,7 +13,7 @@ public abstract class RtmpMessage {
 
 	int inboundHeaderLength;
 	int inboundBodyLength;
-	
+
 //	public RtmpMessage attachInboundHeader(RtmpHeader theHeader) {
 //		inboundHeader = theHeader;
 //		return this;
@@ -26,9 +24,9 @@ public abstract class RtmpMessage {
 //	}
 
 	public abstract int getOutboundCsid()  ;
-	
+
 	public abstract int getMsgType();
-	
+
 	public abstract ByteBuf encodePayload();
 
 }

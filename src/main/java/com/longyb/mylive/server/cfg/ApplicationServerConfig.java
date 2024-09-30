@@ -11,11 +11,15 @@ public class ApplicationServerConfig {
 	public static ApplicationServerConfig INSTANCE = null;
 
 	int rtmpPort;
-	int httpFlvPort;
+
+	boolean enableHttp;
+	int httpPort;
+
 	boolean saveFlvFile;
 	String saveFlVFilePath;
+
 	int handlerThreadPoolSize;
-	boolean enableHttpFlv;
+
 	FfmpegConfig ffmpeg;
-	
+
 }

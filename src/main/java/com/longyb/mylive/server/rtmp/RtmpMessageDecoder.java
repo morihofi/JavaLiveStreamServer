@@ -1,8 +1,4 @@
 package com.longyb.mylive.server.rtmp;
-/**
-@author longyubo
-2019年12月16日 下午3:44:48
-**/
 
 import static com.longyb.mylive.server.rtmp.Constants.*;
 

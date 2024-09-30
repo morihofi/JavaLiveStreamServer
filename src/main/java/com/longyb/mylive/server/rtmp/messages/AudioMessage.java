@@ -1,8 +1,4 @@
 package com.longyb.mylive.server.rtmp.messages;
-/**
-@author longyubo
-2019年12月16日 下午5:37:47
-**/
 
 import java.util.Arrays;
 
@@ -39,7 +35,7 @@ public class AudioMessage extends RtmpMediaMessage {
 
 		return audioData;
 	}
-	
+
 	public boolean isAACAudioSpecificConfig(){
 		return audioData.length>1 && audioData[1]==0;
 	}
@@ -50,6 +46,6 @@ public class AudioMessage extends RtmpMediaMessage {
 				+ ", timestamp=" + timestamp + ", inboundHeaderLength=" + inboundHeaderLength + ", inboundBodyLength="
 				+ inboundBodyLength + "]";
 	}
-	
-	
+
+
 }

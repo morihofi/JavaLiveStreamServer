@@ -1,18 +1,16 @@
 package com.longyb.mylive.server.manager;
-/**
- * @author longyubo
- * 2020年1月2日 下午3:32:04
- **/
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.longyb.mylive.server.entities.Stream;
 import com.longyb.mylive.server.entities.StreamName;
 
 /**
- * all stream info store here,including publisher and subscriber and their live type video & audio
+ * all stream info store here, including publisher and subscriber and their live type video & audio
  * @author longyubo
- *
+ * @author morihofi
  */
 public class StreamManager {
     private final ConcurrentHashMap<StreamName, Stream> streams = new ConcurrentHashMap<>();
@@ -32,5 +30,8 @@ public class StreamManager {
     public void remove(StreamName streamName) {
         streams.remove(streamName);
     }
-}
 
+    public Map<StreamName, Stream> getAllStreams(){
+        return Collections.unmodifiableMap(streams);
+    }
+}

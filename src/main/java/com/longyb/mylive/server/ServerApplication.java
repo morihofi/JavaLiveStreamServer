@@ -26,13 +26,13 @@ public class ServerApplication {
         RtmpServer rtmpServer = new RtmpServer(rtmpPort, streamManager, handlerThreadPoolSize);
         rtmpServer.run();
 
-        if (!ApplicationServerConfig.INSTANCE.isEnableHttpFlv()) {
+        if (!ApplicationServerConfig.INSTANCE.isEnableHttp()) {
             return;
         }
 
-        int httpPort = ApplicationServerConfig.INSTANCE.getHttpFlvPort();
-        HttpFlvServer httpFlvServer = new HttpFlvServer(httpPort, streamManager, handlerThreadPoolSize);
-        httpFlvServer.run();
+        int httpPort = ApplicationServerConfig.INSTANCE.getHttpPort();
+        HttpServer httpServer = new HttpServer(httpPort, streamManager, handlerThreadPoolSize);
+        httpServer.run();
 
     }
 
@@ -40,7 +40,7 @@ public class ServerApplication {
         ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
         try {
 
-            Path configFilePath = Paths.get("./mylive.yaml").toAbsolutePath();
+            Path configFilePath = Paths.get("./config.yaml").toAbsolutePath();
             log.info("Loading configuration from {}", configFilePath);
 
             ApplicationServerConfig cfg = mapper.readValue(configFilePath.toFile(), ApplicationServerConfig.class);
